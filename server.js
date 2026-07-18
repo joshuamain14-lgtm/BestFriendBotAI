@@ -1,105 +1,105 @@
 const express = require("express");
-const OpenAI = require("openai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
 
 const app = express();
 
-
-// Allow Roblox to send JSON
 app.use(express.json());
 
 
-// Connect to OpenAI
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-});
+// Gemini connection
+const genAI = new GoogleGenerativeAI(
+    process.env.GEMINI_API_KEY
+);
 
 
-// Test page
-app.get("/", (req, res) => {
+
+app.get("/", (req,res)=>{
 
     res.send("Best Friend Bot AI is online!");
 
 });
 
 
-// Roblox sends messages here
-app.post("/chat", async (req, res) => {
+
+app.post("/chat", async (req,res)=>{
+
 
     try {
+
 
         const playerMessage = req.body.message;
 
 
-        if (!playerMessage) {
+
+        if(!playerMessage){
 
             return res.json({
-                reply: "I didn't hear anything. Can you say that again?"
+
+                reply:"I didn't hear you. Can you say that again?"
+
             });
 
         }
 
 
 
-        const response = await openai.chat.completions.create({
+        const model = genAI.getGenerativeModel({
 
-            model: "gpt-4.1-mini",
+            model:"gemini-1.5-flash"
 
-            messages: [
+        });
 
-                {
-                    role: "system",
 
-                    content:
-                    `
+
+        const prompt = `
+
 You are a friendly Best Friend Bot inside Roblox.
 
-Personality:
+Your personality:
 - Kind
 - Patient
 - Supportive
 - Positive
 - A good listener
 
-Rules:
-- Respond based on what the player says.
-- Ask questions to continue the conversation.
-- Make players feel heard.
-- Keep responses short enough for Roblox chat bubbles.
-- Do not pretend to be a real human.
-                    `
-                },
+The player said:
 
+"${playerMessage}"
 
-                {
-                    role: "user",
+Respond naturally.
+Ask questions.
+Help them feel heard.
+Keep replies short enough for Roblox speech bubbles.
 
-                    content: playerMessage
-                }
-
-            ]
-
-        });
+`;
 
 
 
-        const aiReply =
-        response.choices[0].message.content;
+        const result = await model.generateContent(prompt);
+
+
+        const response = result.response;
+
+
+        const reply = response.text();
 
 
 
         res.json({
 
-            reply: aiReply
+            reply: reply
 
         });
 
 
 
-    } catch(error) {
+    } catch(error){
 
 
-        console.log("AI ERROR:");
+        console.log("GEMINI ERROR:");
         console.log(error);
+
 
 
         res.json({
@@ -109,17 +109,18 @@ Rules:
 
         });
 
+
     }
+
 
 });
 
 
 
-// Render needs this port
 const PORT = process.env.PORT || 3000;
 
 
-app.listen(PORT, () => {
+app.listen(PORT,()=>{
 
     console.log(
         "Best Friend Bot AI running on port " + PORT
