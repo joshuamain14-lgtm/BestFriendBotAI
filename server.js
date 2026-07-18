@@ -4,11 +4,11 @@ const OpenAI = require("openai");
 const app = express();
 
 
-// Allow JSON messages from Roblox
+// Allow Roblox to send JSON
 app.use(express.json());
 
 
-// Connect to OpenAI using your Render environment variable
+// Connect to OpenAI
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
@@ -27,7 +27,6 @@ app.post("/chat", async (req, res) => {
 
     try {
 
-        // Get the player's message
         const playerMessage = req.body.message;
 
 
@@ -41,7 +40,6 @@ app.post("/chat", async (req, res) => {
 
 
 
-        // Ask the AI
         const response = await openai.chat.completions.create({
 
             model: "gpt-4.1-mini",
@@ -50,30 +48,31 @@ app.post("/chat", async (req, res) => {
 
                 {
                     role: "system",
-                    content: `
+
+                    content:
+                    `
 You are a friendly Best Friend Bot inside Roblox.
 
-Your personality:
+Personality:
 - Kind
 - Patient
 - Supportive
 - Positive
 - A good listener
 
-Your job:
-- Listen to what the player says
-- Respond based on their exact message
-- Ask questions to continue the conversation
-- Make the player feel heard
-
-Do not pretend to be a real human.
-Do not give dangerous advice.
-Keep responses suitable for Roblox players.
-`
+Rules:
+- Respond based on what the player says.
+- Ask questions to continue the conversation.
+- Make players feel heard.
+- Keep responses short enough for Roblox chat bubbles.
+- Do not pretend to be a real human.
+                    `
                 },
+
 
                 {
                     role: "user",
+
                     content: playerMessage
                 }
 
@@ -83,13 +82,11 @@ Keep responses suitable for Roblox players.
 
 
 
-        // Get AI response
         const aiReply =
-            response.choices[0].message.content;
+        response.choices[0].message.content;
 
 
 
-        // Send back to Roblox
         res.json({
 
             reply: aiReply
@@ -98,21 +95,19 @@ Keep responses suitable for Roblox players.
 
 
 
-    } catch (error) {
+    } catch(error) {
 
 
         console.log("AI ERROR:");
         console.log(error);
 
 
-
         res.json({
 
             reply:
-            "Sorry, I am having trouble thinking right now. Can you try again?"
+            "Sorry, I am having trouble thinking right now."
 
         });
-
 
     }
 
@@ -120,7 +115,7 @@ Keep responses suitable for Roblox players.
 
 
 
-// Render uses its own port
+// Render needs this port
 const PORT = process.env.PORT || 3000;
 
 
